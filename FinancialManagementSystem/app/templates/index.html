@@ -1,0 +1,106 @@
+{% extends 'layout.html' %}
+
+{% block title %}Home{% endblock %}
+
+{% block main_content %}
+<div class="container mt-5">
+    <h2 class="mb-4 text-center">Available Orders</h2>
+
+    <div class="table-responsive">
+        <table class="table table-hover table-bordered">
+            <thead class="table-dark">
+                <tr>
+                    <th>Stock Symbol</th>
+                    <th>Quantity</th>
+                    <th>Price</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for order in orders %}
+                    <tr>
+                        <td>{{ order.stock_symbol }}</td>
+                        <td>{{ order.quantity }}</td>
+                        <td>${{ order.price }}</td>
+                        <td>
+                            <button type="button" class="btn btn-success btn-sm" data-bs-toggle="modal" data-bs-target="#purchaseModal" onclick="setCurrentOrder('{{ order.id }}', '{{ order.stock_symbol }}', '{{ order.price }}')">Buy</button>
+                        </td>
+                    </tr>
+                {% else %}
+                    <tr>
+                        <td colspan="4" class="text-center">No available orders found.</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Purchase Modal -->
+    <div class="modal fade" id="purchaseModal" tabindex="-1" aria-labelledby="purchaseModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="purchaseModalLabel">Purchase Order</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="purchaseForm">
+                        <input type="hidden" id="currentOrderId" name="order_id">
+                        <div class="mb-3">
+                            <label for="purchaseStockSymbol" class="form-label">Stock Symbol</label>
+                            <input type="text" class="form-control" id="purchaseStockSymbol" name="stock_symbol" readonly>
+                        </div>
+                        <div class="mb-3">
+                            <label for="purchasePrice" class="form-label">Price</label>
+                            <input type="text" class="form-control" id="purchasePrice" name="price" readonly>
+                        </div>
+                        <div class="mb-3">
+                            <label for="purchaseQuantity" class="form-label">Quantity</label>
+                            <input type="number" class="form-control" id="purchaseQuantity" name="quantity" required>
+                        </div>
+                        <button type="button" class="btn btn-primary" onclick="purchaseOrder()">Submit Purchase</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block custom_js %}
+<script>
+    function setCurrentOrder(orderId, stockSymbol, price) {
+        document.getElementById('currentOrderId').value = orderId;
+        document.getElementById('purchaseStockSymbol').value = stockSymbol;
+        document.getElementById('purchasePrice').value = price;
+    }
+
+    function purchaseOrder() {
+        const orderId = document.getElementById('currentOrderId').value;
+        const quantity = document.getElementById('purchaseQuantity').value;
+
+        fetch("{{ url_for("main.stock.buy") }}", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ order_id: orderId, quantity: quantity })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if(data.status === 'success') {
+                alert('Purchase successful');
+                location.reload();
+            } else {
+                alert(data.message);
+            }
+        })
+        .catch((error) => {
+            console.error('Error:', error);
+            alert('An error occurred, please try again.');
+        });
+    }
+</script>
+{% endblock %}
+
+

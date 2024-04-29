@@ -1,0 +1,80 @@
+{% extends 'layout.html' %}
+
+{% block title %}Personal Info{% endblock %}
+
+{% block main_content %}
+<div class="container mt-5">
+    <h2 class="mb-4">Personal Information</h2>
+    <p><strong>Username:</strong> {{ user.username }}</p>
+    <p><strong>Email:</strong> {{ user.email }}</p>
+    <p><strong>Balance:</strong> ${{ user.balance }}</p>
+    <h3 class="mt-4">Portfolio</h3>
+    <ul class="list-group">
+    {% for item in portfolio_items %}
+        <li class="list-group-item">{{ item.stock_symbol }} - {{ item.quantity }} shares</li>
+    {% else %}
+        <li class="list-group-item">No portfolio items found.</li>
+    {% endfor %}
+    </ul>
+
+    <!-- Deposit and Withdraw Buttons -->
+    <div class="mt-4">
+        <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#depositModal">Deposit</button>
+        <button type="button" class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#withdrawModal">Withdraw</button>
+    </div>
+</div>
+
+<!-- Deposit Modal -->
+<div class="modal fade" id="depositModal" tabindex="-1" aria-labelledby="depositModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="depositModalLabel">Deposit Funds</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form action="{{ url_for('main.bank.deposit') }}" method="post">
+            <div class="mb-3">
+                <label for="depositAmount" class="form-label">Amount</label>
+                <input type="number" class="form-control" name="amount" id="depositAmount" placeholder="Enter amount" required>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="submit" class="btn btn-primary">Confirm Deposit</button>
+            </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Withdraw Modal -->
+<div class="modal fade" id="withdrawModal" tabindex="-1" aria-labelledby="withdrawModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="withdrawModalLabel">Withdraw Funds</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form action="{{ url_for('main.bank.withdraw') }}" method="post">
+          <div class="mb-3">
+            <label for="withdrawAmount" class="form-label">Amount</label>
+            <input type="number" class="form-control" name="amount" id="withdrawAmount" placeholder="Enter amount" required>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            <button type="submit" class="btn btn-primary">Confirm Withdrawal</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+{% endblock %}
+
+{% block custom_js %}
+
+{% endblock %}

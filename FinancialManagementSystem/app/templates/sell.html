@@ -1,0 +1,122 @@
+{% extends 'layout.html' %}
+
+{% block title %}Sell Stocks{% endblock %}
+{% block main_content %}
+<div class="container mt-5">
+    <h2 class="mb-4 text-center">Sell Stocks</h2>
+
+    <!-- Button trigger modal -->
+    <div class="d-flex justify-content-end mb-4">
+        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createOrderModal">
+            Create Selling Order
+        </button>
+    </div>
+
+    <!-- Owned Stocks Table -->
+    <h4>Owned Stocks</h4>
+    <div class="table-responsive">
+        <table class="table table-hover table-bordered">
+            <thead class="table-dark">
+                <tr>
+                    <th>Stock Symbol</th>
+                    <th>Quantity</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for stock in owned_stocks %}
+                    <tr>
+                        <td>{{ stock.stock_symbol }}</td>
+                        <td>{{ stock.quantity }}</td>
+                    </tr>
+                {% else %}
+                    <tr>
+                        <td colspan="2" class="text-center">No owned stocks found.</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Create Selling Order Modal -->
+    <div class="modal fade" id="createOrderModal" tabindex="-1" aria-labelledby="createOrderModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="createOrderModalLabel">Create Selling Order</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form action="{{ url_for('main.main.sell') }}" method="post">
+                        <div class="mb-3">
+                            <label for="stockSymbolModal" class="form-label">Stock Symbol</label>
+                            <select class="form-select" id="stockSymbolModal" name="stock_symbol" required>
+                                {% for stock in owned_stocks %}
+                                    <option value="{{ stock.stock_symbol }}">{{ stock.stock_symbol }}</option>
+                                {% else %}
+                                    <option>No stocks available</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="quantityModal" class="form-label">Quantity</label>
+                            <input type="number" class="form-control" id="quantityModal" name="quantity" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="priceModal" class="form-label">Price</label>
+                            <input type="number" class="form-control" id="priceModal" name="price" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Submit Order</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Current Selling Orders -->
+    <h4>Current Selling Orders</h4>
+    <ul class="list-group">
+        {% for order in selling_orders %}
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+                {{ order.stock_symbol }} - {{ order.quantity }} shares at ${{ order.price }} each
+                <span>
+                  <button type="button" class="btn btn-danger btn-sm" onclick="cancelOrder('{{ order.id }}')">Cancel</button>
+                </span>
+            </li>
+        {% else %}
+            <li class="list-group-item">No selling orders found.</li>
+        {% endfor %}
+    </ul>
+</div>
+{% endblock %}
+
+{% block custom_js %}
+<script>
+    function cancelOrder(orderId) {
+        console.log(orderId);
+        fetch("{{ url_for('main.stock.cancel_order') }}", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ order_id: orderId })
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.json();
+        })
+        .then(data => {
+            if(data.status === 'success') {
+                location.reload(); // Reload page to update the list
+            } else {
+                alert(data.message);
+            }
+        })
+        .catch((error) => {
+            console.error('Error:', error);
+            alert('An error occurred, please try again.');
+        });
+    }
+</script>
+{% endblock %}
